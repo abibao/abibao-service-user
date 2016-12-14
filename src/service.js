@@ -17,7 +17,7 @@ server.connection({
 })
 
 /*
-PLUGINS
+PLUGIN
 */
 server.register(vision)
 server.register(inert)
@@ -25,7 +25,8 @@ server.register({
   register: require('chairo'),
   options: {
     seneca: Seneca({
-      tag: 'home',
+      tag: 'user',
+      internal: {logger: require('seneca-pino-logger')({level: 'info'})},
       debug: {short_logs: true}
     })
   }
@@ -35,7 +36,8 @@ server.register({
   options: {
     bases: BASES,
     route: [
-      {path: '/api/ping'}
+      {path: '/user/homepage'},
+      {path: '/user/api/ping'}
     ],
     sneeze: {
       silent: false
@@ -44,7 +46,7 @@ server.register({
 })
 
 /*
-STATICS
+STATIC
 */
 server.views({
   engines: {html: handlebars},
@@ -62,19 +64,19 @@ server.route({
 })
 server.route({
   method: 'GET',
-  path: '/home',
+  path: '/user/homepage',
   handler: (request, reply) => {
-    reply.view('home', {
+    reply.view('homepage', {
     })
   }
 })
 
 /*
-APIS
+API
 */
 server.route({
   method: 'GET',
-  path: '/api/ping',
+  path: '/user/api/ping',
   handler: (request, reply) => {
     server.seneca.act('role:api,cmd:ping', (err, out) => {
       reply(err || out)
@@ -83,7 +85,7 @@ server.route({
 })
 
 /*
-SERVICES
+SENECA
 */
 server.seneca
   .add('role:api,cmd:ping', (msg, done) => {
@@ -91,6 +93,9 @@ server.seneca
   })
   .use('mesh', {bases: BASES})
 
+/*
+start
+*/
 server.start(() => {
   console.log('abibao-service-user is ready: ', server.info.host, server.info.port)
 })
